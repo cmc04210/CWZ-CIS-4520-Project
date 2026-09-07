@@ -173,11 +173,11 @@ score_text:     .res 11
     sta mode
     jsr enter_title
 
+    lda #$1E                ; show BG + sprites (applied by the first NMI)
+    sta ppu_mask_sh
     lda #$80                ; NMI on, BG+sprites from pattern table 0
     sta ppu_ctrl_sh
     sta PPUCTRL
-    lda #$1E                ; show BG + sprites
-    sta ppu_mask_sh
 
 main_loop:
     jsr wait_frame
@@ -1130,9 +1130,9 @@ grid_hline:
     .byte TILE_HBAR, TILE_HBAR, TILE_HBAR, TILE_CROSS
     .byte TILE_HBAR, TILE_HBAR, TILE_HBAR
 
-; Text lines: rows 21, 22 and 24, column 12
+; Text lines: rows 21, 23 and 25, column 12
 line_addr_hi:   .byte $22, $22, $23
-line_addr_lo:   .byte $AC, $CC, $0C
+line_addr_lo:   .byte $AC, $EC, $2C
 
 ; All strings are exactly 11 characters (tile indices = ASCII codes).
 txt_title:       .byte "TIC-TAC-TOE"
