@@ -416,8 +416,10 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
       F.drawRight(ctx, val, vx, y, sel ? C.YELLOW : C.TAN);
       F.draw(ctx, '<', vx - F.width(val) - 8, y, sel ? C.YELLOW : C.LIGHTWOOD);
       F.draw(ctx, '>', vx + 3, y, sel ? C.YELLOW : C.LIGHTWOOD);
-      hit(lx, y - 1, lw / 2 + 20, rowH, function () { ws.sel = i; adjust(p, -1); });
-      hit(lx + lw / 2 + 20, y - 1, lw / 2 - 20, rowH, function () { ws.sel = i; adjust(p, 1); });
+      var valL = vx - F.width(val) - 10, valC = vx - F.width(val) / 2;
+      hit(lx, y - 1, valL - lx, rowH, function () { if (ws.sel !== i) Au.move(); ws.sel = i; });
+      hit(valL, y - 1, valC - valL, rowH, function () { ws.sel = i; adjust(p, -1); });
+      hit(valC, y - 1, lx + lw - valC, rowH, function () { ws.sel = i; adjust(p, 1); });
     });
 
     // Stats
@@ -447,7 +449,7 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
     hit(0, H - 11, W, 11, function () { Au.back(); if (mode === 'career') goLevels(); else goTitle(); });
 
     // Preview
-    var pxp = 206, pyp = 15, pw = W - pxp - 4, ph = H - pyp - 42;
+    var pxp = 206, pyp = 15, pw = W - pxp - 4, ph = H - pyp - 58;
     R.panel(pxp, pyp, pw, ph, C.SKY, C.LIGHTWOOD, false);
     ctx.save(); ctx.beginPath(); ctx.rect(pxp + 1, pyp + 1, pw - 2, ph - 2); ctx.clip();
     var sim = PC.Physics.createSim(build, pk, b);
@@ -467,7 +469,8 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
     F.draw(ctx, pk.name + ' ' + pk.lb + ' LB', pxp + 26, iy + 4, C.PUMPKIN);
     F.draw(ctx, 'AXLE ' + fmt(b.axleHeightFt, 1) + ' FT  SLING ' + fmt(build.slingPct / 100 * build.longArm, 1) + ' FT', pxp + 26, iy + 13, C.TAN);
     var okToLaunch = !canLaunch(b, lv);
-    button(pxp + pw - 60, iy + 22 - 20, 56, 'LAUNCH!', okToLaunch, function () { startLaunch(); }, okToLaunch ? C.WHITE : C.GRAY);
+    button(pxp + pw - 64, iy + 24, 60, 'LAUNCH!', okToLaunch, function () { startLaunch(); }, okToLaunch ? C.WHITE : C.GRAY);
+    if (lv) F.draw(ctx, 'BEST ' + levelBest(levelIdx) + ' FT', pxp + 4, iy + 27, C.GREEN);
   }
 
   function drawLaunch() {
@@ -480,8 +483,9 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
     if (L.frameFail) {
       // machine sinks into a heap
       var drop = Math.min(1, L.collapseT / 0.6);
-      var ccam = { x: scam.x, y: scam.y + drop * sim.H * 0.6, s: scam.s, groundRow: scam.groundRow };
+      var ccam = { x: scam.x, y: scam.y + drop * sim.H * 0.8, s: scam.s, groundRow: scam.groundRow };
       R.drawTrebuchet(sim, ccam, L.build, { snapped: true });
+      R.drawGround(scam, L.level ? L.level.target : null, null);
       for (var i = 0; i < 12; i++) {
         var a = i * 0.52 + L.collapseT, rr = (8 + i * 3) * Math.min(1, L.collapseT * 1.5);
         var g = R.toScreen(scam, 0, 0);
@@ -497,7 +501,7 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
       R.drawTrebuchet(sim, scam, L.build, { snapped: sim.snapped });
       if (sim.released) {
         var pp = R.toScreen(scam, sim.proj.x, sim.proj.y);
-        if (!sim.landed) R.drawPumpkin(pp.x, pp.y, sim.pr * scam.s, false);
+        if (!sim.landed) R.drawPumpkin(pp.x, pp.y, Math.max(3, sim.pr * scam.s), false);
       }
       if (sim.snapped && sim.t < 3) F.drawShadow(ctx, 'ARM SNAPPED!', W / 2 - F.width('ARM SNAPPED!', 2) / 2, 40, C.RED, C.BLACK, 2);
     }
@@ -529,7 +533,7 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
     if (lv) F.drawCentered(ctx, 'GOAL ' + lv.target + ' FT', W / 2, py + 44, C.TAN);
     var detail = L.frameFail ? 'THE FRAME GAVE WAY UNDER THE LOAD' :
       (L.sim.snapped ? 'THE ARM SNAPPED MID-SWING' :
-        'RELEASED AT ' + fmt(res.v) + ' FT/S, ' + fmt(res.ang) + ' DEG, APEX ' + fmt(res.apex) + ' FT');
+        fmt(res.v) + ' FT/S AT ' + fmt(res.ang) + ' DEG, APEX ' + fmt(res.apex) + ' FT');
     F.drawCentered(ctx, detail, W / 2, py + (lv ? 54 : 44), C.LIGHTGRAY);
     if (lv) {
       for (var i = 0; i < 3; i++) F.draw(ctx, '*', W / 2 - 18 + i * 13, py + 66, i < res.stars ? C.YELLOW : C.GRAY, 2);

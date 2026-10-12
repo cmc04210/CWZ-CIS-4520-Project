@@ -120,10 +120,10 @@ var PC = (typeof window !== 'undefined') ? (window.PC = window.PC || {}) : (glob
       var c = bands[0][1];
       for (var i = 0; i < bands.length; i++) if (alt >= bands[i][0]) c = bands[i][1];
       // dither transitions
-      var next = null;
-      for (var j = 0; j < bands.length - 1; j++) if (alt >= bands[j][0] && alt < bands[j + 1][0]) next = bands[j + 1];
+      var next = null, j;
+      for (j = 0; j < bands.length - 1; j++) if (alt >= bands[j][0] && alt < bands[j + 1][0]) { next = bands[j + 1]; break; }
       if (next) {
-        var span = next[0] - bands[j][0], into = (alt - (next[0] - span * 0.3)) / (span * 0.3);
+        var span = next[0] - bands[j][0], into = (alt - (next[0] - span * 0.12)) / (span * 0.12);
         if (into > 0.66 && (row & 1) === 0) c = next[1];
         else if (into > 0.33 && (row & 3) === 0) c = next[1];
         else if (into > 0 && (row & 7) === 0) c = next[1];
